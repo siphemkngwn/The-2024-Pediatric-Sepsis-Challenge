@@ -13,8 +13,9 @@ from helper_code import *
 import numpy as np, os, sys
 import pandas as pd
 import mne
+from sklearn.linear_model import LogisticRegression 
 from sklearn.impute import SimpleImputer
-from sklearn.ensemble import RandomForestClassifier
+
 import joblib
 
 ################################################################################
@@ -31,9 +32,17 @@ def train_challenge_model(data_folder, model_folder, verbose):
         
     patient_ids, data, label, features = load_challenge_data(data_folder)
     num_patients = len(patient_ids)
+    
 
     if num_patients == 0:
         raise FileNotFoundError('No data is provided.')
+        selected_features = ['agecalc_adm', 'height_cm_adm', 'weight_kg_adm', 
+                    'muac_mm_adm', 'hr_bpm_adm', 'rr_brpm_app_adm', 
+                    'sysbp_mmhg_adm', 'diasbp_mmhg_adm', 'temp_c_adm', 
+                    'spo2site1_pc_oxi_adm'] # These features were identified as possibly important in model generation
+       missing_features = set(selected_features) - set(data.columns)
+if missing_features:
+    raise ValueError(f"The following features are missing in the data: {missing_features}") 
         
     # Create a folder for the model if it does not already exist.
     os.makedirs(model_folder, exist_ok=True)
@@ -50,18 +59,21 @@ def train_challenge_model(data_folder, model_folder, verbose):
     with open(os.path.join(model_folder, 'columns.txt'), 'w') as f:
         f.write("\n".join(columns))
         
-    # Define parameters for random forest classifier and regressor.
-    n_estimators   = 123  # Number of trees in the forest.
-    max_leaf_nodes = 456  # Maximum number of leaf nodes in each tree.
-    random_state   = 789  # Random state; set for reproducibility.
+    # Define parameters for Logistic Regression
+    penalty = 'l2'
+C = 1.0
+solver = 'lbfgs'
+max_iter = 1000
+random_state = 789
 
     # Impute any missing features; use the mean value by default.
     imputer = SimpleImputer().fit(data)
 
     # Train the models.
     data_imputed = imputer.transform(data)
-    prediction_model = RandomForestClassifier(
-        n_estimators=n_estimators, max_leaf_nodes=max_leaf_nodes, random_state=random_state).fit(data_imputed, label.ravel())
+   model = LogisticRegression(penalty=penalty, C=C, solver=solver, 
+                           max_iter=max_iter, random_state=random_state)
+model.fit(data, label)
 
     # Save the models.
     save_challenge_model(model_folder, imputer, prediction_model)
