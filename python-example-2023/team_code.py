@@ -14,6 +14,7 @@ import numpy as np, os, sys
 import pandas as pd
 import mne
 from sklearn.impute import SimpleImputer
+sklearn.metrics import accuracy_score,roc_auc_score
 from sklearn.ensemble import RandomForestClassifier
 import joblib
 
@@ -51,9 +52,9 @@ def train_challenge_model(data_folder, model_folder, verbose):
         f.write("\n".join(columns))
         
     # Define parameters for random forest classifier and regressor.
-    n_estimators   = 123  # Number of trees in the forest.
+    n_estimators   = 100  # Number of trees in the forest.
     max_leaf_nodes = 456  # Maximum number of leaf nodes in each tree.
-    random_state   = 789  # Random state; set for reproducibility.
+    random_state   = 42  # Random state; set for reproducibility.
 
     # Impute any missing features; use the mean value by default.
     imputer = SimpleImputer().fit(data)
@@ -86,7 +87,7 @@ def load_challenge_model(model_folder, verbose):
 def run_challenge_model(model, data_folder, verbose):
     imputer = model['imputer']
     prediction_model = model['prediction_model']
-    columns = model['columns']
+    columns = model['height_cm_adm','muac_mm_adm','glucose_mmolpl_adm','lengthadm','rr_brpm_app_adm','weight_kg_adm','diasbp_mmhg_adm','sqi1_perc_oxi_adm','bcsverbal_adm','temp_c_adm','lactate_mmolpl_adm','hematocrit_gpdl_adm','bcsmotor_adm','sysbp_mmhg_adm','inhospital_mortality','agecat']
 
     # Load data.
     patient_ids, data, label, features = load_challenge_data(data_folder)
